@@ -162,7 +162,7 @@ class ConsoleWindow(wx.Frame):
         progress_ascii = ["|", "/", "-", "\\" ]
         
         host = "test.officedrive.net"
-        urlext = "/fileuploader/transponder.php?sid=mzMTnrwjDB2W1oYoGIVme6SLehHvDA&action=uploadFileInFolder&folderId=1&" + urllib.urlencode( [("path", os.path.basename(fileName))])
+        urlext = "/fileuploader/transponder.php?sid=LxN2TjrqmppGCCA4lQhOp2WUEx10rG&action=uploadFileInFolder&folderId=1&" + urllib.urlencode( [("path", os.path.basename(fileName))])
         chunk_size = 16384
         f = open(fileName,"rb")
         filesize = os.stat(fileName)[6]
@@ -173,7 +173,8 @@ class ConsoleWindow(wx.Frame):
                 
         conn = urllib2.httplib.HTTPSConnection(host, 443)
         conn.putrequest("PUT", "%s" %urlext)
-        conn.putheader("Cookie", "mzMTnrwjDB2W1oYoGIVme6SLehHvDA=fcTH9Q6e3Cn4zrGbuIaPaiJzWLx-0NHTVHE52YBfZmqNMFD_5MiGeImb-JUSaJzJsrC1HXYIt84CuVE_cj-Lbi-OyFSmsqTGa562u0AdPCqMaDWRnAkHSDy5mZ7i9VU6NNv1KzDbPS3-VEnVLOtIUGQFiNaH03G3Cd01TaktcdASYnXYNlH_SeEQwpXH8fW5GeLR5ILj;")
+        conn.putheader("Cookie","LxN2TjrqmppGCCA4lQhOp2WUEx10rG=S9wn0yYl-oxCEebaGnPVqzwRP3dD_md9cfpRrMTrShwwIdfR6WSzCvvI-NRngbko4H7M-R1KPDxo1ko8FA_6mdHdhd-sAj6-Zzi6ut9jWbKsFyepsth1Gqk8Y80gUxLrGGsUZ47SMiVEyqRvkt_sNW2NU1uXt-Y4RuHazEL6XoOm1Xw_gEqWTDhD_gHhjET2-OFyTFlg;")
+        #conn.putheader("Cookie", "mzMTnrwjDB2W1oYoGIVme6SLehHvDA=fcTH9Q6e3Cn4zrGbuIaPaiJzWLx-0NHTVHE52YBfZmqNMFD_5MiGeImb-JUSaJzJsrC1HXYIt84CuVE_cj-Lbi-OyFSmsqTGa562u0AdPCqMaDWRnAkHSDy5mZ7i9VU6NNv1KzDbPS3-VEnVLOtIUGQFiNaH03G3Cd01TaktcdASYnXYNlH_SeEQwpXH8fW5GeLR5ILj;")
         conn.putheader("Content-Length", filesize)
         #conn.putheader("Transfer-Encoding", "chunked")
         #conn.putheader("Content-Type", "application/zip")
