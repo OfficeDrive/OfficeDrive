@@ -86,7 +86,7 @@ class UploadFilesTree(object):
             item.put("path", self.map.get(key))
             return item
 
-        @get.register(object, str)
+#        @get.register(object, str)
         def get_0(self, path):
             """ generated source for method get_0 """
             if self.map.containsKey(path):

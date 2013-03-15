@@ -13,7 +13,7 @@ import urllib
 from shutil import copyfile
 from shutil import move
 
-from j2py.OS import OS
+from OS import OS
 
 class FileActions(object):
     """ generated source for class FileActions """
@@ -137,11 +137,11 @@ class FileActions(object):
             return execOpenOnDesktop(file_)
         #  }
 
-    @classmethod
-    @openOnDesktop.register(object, File)
-    def openOnDesktop_0(cls, file_):
+   # @classmethod
+   # @openOnDesktop.register(object, File)
+    def openOnDesktop_0(self, file_):
         """ generated source for method openOnDesktop_0 """
-        return cls.openOnDesktop(file_, False)
+        return self.openOnDesktop(file_, False)
 
     @classmethod
     def execOpenOnDesktop(cls, file_):
@@ -312,7 +312,7 @@ class FileActions(object):
         return cls.saveHashMap(map, File(file_))
 
     @classmethod
-    @saveHashMap.register(object, HashMap, File)
+#    @saveHashMap.register(object, HashMap, File)
     def saveHashMap_0(cls, map, file_):
         """ generated source for method saveHashMap_0 """
         if map == None or map.isEmpty():
@@ -331,12 +331,12 @@ class FileActions(object):
         return map
 
     @classmethod
-    @loadHashMap.register(object, str)
+#    @loadHashMap.register(object, str)
     def loadHashMap_0(cls, file_):
         """ generated source for method loadHashMap_0 """
         return cls.loadHashMap(File(file_))
 
-    complete = MessageDigest()
+ #   complete = MessageDigest()
 
     @classmethod
     def createChecksum(cls, filename):
@@ -364,7 +364,7 @@ class FileActions(object):
         return cls.MD5(file_.getAbsolutePath())
 
     @classmethod
-    @MD5.register(object, str)
+#    @MD5.register(object, str)
     def MD5_0(cls, fileName):
         """ generated source for method MD5_0 """
         file_ = File(fileName)
@@ -503,27 +503,30 @@ class FileActions(object):
             if conn.getcode() / 100 != 2:
                 print "could connect to " + url.__str__()
                 return False
-            else:
-                try:
-                    # out
-                    bufferSize = 1024*7
-                    out = io.open(file_, "wb")
-                    in_ = conn.fp               
-                    out.write(in.read(bufferSize))
+       
+            try:
+                # out
+                bufferSize = 1024*7
+                out = io.open(file_, "wb")
+                in_ = conn.fp               
+                out.write(in_.read(bufferSize))
                 in_.close()
                 out.close()
                 return True
+            except Exception as e:
+                e.printStackTrace()
+                return False
+
         except Exception as e:
             e.printStackTrace()
             return False
 
-    @classmethod
-    @downloadUrlToFile.register(object, str, File)
-    def downloadUrlToFile_0(cls, url, file_):
-        """ generated source for method downloadUrlToFile_0 """
-        try:
-            return cls.downloadUrlToFile(URL(url), file_)
-        except (Exception) as e:
-            e.printStackTrace()
-            return False
-
+        #  @downloadUrlToFile.register(object, str, File)
+        def downloadUrlToFile_0(cls, url, file_):
+            """ generated source for method downloadUrlToFile_0 """
+            try:
+                return cls.downloadUrlToFile(url, file_)
+            except (Exception) as e:
+                e.printStackTrace()
+                return False
+        

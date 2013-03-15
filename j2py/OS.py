@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ generated source for module OS """
-
+import os
 import sys
 
 class OS(object):
@@ -8,9 +8,10 @@ class OS(object):
     @classmethod
     def getName(cls):
         """ generated source for method getName """
-        if cls.name == None:
-            cls.name = sys.platform.lower()
-        return cls.name
+        #if cls.name == None:
+        name = sys.platform.lower()
+        print name
+        return name
     
     @classmethod
     def isWindows(cls):
@@ -65,7 +66,7 @@ class OS(object):
     @classmethod
     def description(cls):
         """ generated source for method description """
-        return getName() + ", version: " + getVersion() + ", architecture: " + getArch()
+        return cls.getName() + ", version: " + cls.getVersion() + ", architecture: " + cls.getArch()
 
     name = str()
     version = str()
@@ -76,14 +77,12 @@ class OS(object):
     @classmethod
     def getVersion(cls):
         """ generated source for method getVersion """
-        if cls.version == None:
-            cls.version = System.getProperty("os.version").lower()
-        return cls.version
+        version = str(os.sys.getwindowsversion()[0])
+        return version
 
     @classmethod
     def getArch(cls):
         """ generated source for method getArch """
-        if cls.arch == None:
-            cls.arch = System.getProperty("os.arch").lower()
-        return cls.arch
+        arch = str(os.environ.get("PROCESSOR_ARCHITECTURE"))
+        return arch
 

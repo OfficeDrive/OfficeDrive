@@ -5,7 +5,7 @@ import os
 import sys
 
 appdir = "C:\\Users\\simon\\My Documents\\Aptana Studio 3 Workspace\\OfficeDrive_Daemon"
-sys.path.append(os.path.join(appdir))
+sys.path.append(os.path.join(appdir, "j2py"))
 
 import time
 import io
@@ -19,12 +19,13 @@ import socket
 
 from threading import Thread
 
-from j2py import UploadFilesTree
-from j2py import DesEncrypter
-from j2py.OS import OS
-from j2py import FileChangeChecker
-from j2py import Browser
-from j2py.FileActions import FileActions
+import UploadFilesTree
+import DesEncrypter
+from OS import OS
+import FileChangeChecker
+import Browser
+from FileActions import FileActions
+
 
 class FileChooser(wx.FileDialog):
     pass
@@ -45,10 +46,10 @@ class OfficeDrive_SE6():
     appFolder = str()
     appRootFolder = str()
     s = str()
-    commandChecker = CommandChecker()
+    
     cmds = []
     encryptorKey = None
-    encrypter = DesEncrypter()
+    encrypter = DesEncrypter.DesEncrypter()
     maxEncryptionFileSize = 1024 * 1024 * 3
     fileChecker = Thread()
     jsObj = str()
@@ -88,7 +89,7 @@ class OfficeDrive_SE6():
     sid = str()
     # useNaiveSSL = false;
     cookie = str()
-    browser = Browser()
+    browser = Browser.Browser()
     # _useXdelta = null;
     _useXFileDialog = None
     xFileDialogLibrary = str()
@@ -98,13 +99,18 @@ class OfficeDrive_SE6():
     settings = {}
     language = str()
     locks = {}
-    fileChooser = FileChooser()
+    
     myNetUseLetter = str()
     netUseLetters = {}
     currentNetUseLetter = ""
     currentNetUseIsPersistent = False
     currentMountNode = ""
     currentMountIsPersistent = False
+    
+    def __init__(self):
+        commandChecker = self.CommandChecker()
+        
+        self.start()
 
     def encrypter(self):
         """ generated source for method encrypter """
@@ -130,18 +136,18 @@ class OfficeDrive_SE6():
         """ generated source for method start """
         tryCount = 0
         while not self.starting and tryCount < 3:
-            print "start OfficeDrive.6 #" + tryCount
+            print "start OfficeDrive.6 #" + str(tryCount)
             # print "start "+this.__class__.__name__+" #"+tryCount;
             try:
                 self._start()
             except Exception as e:
-                e.printStackTrace()
+                sys.stdout.write("%s\n" %e)
                 print "waiting 2 seconds to retry starting applet..."
-                try:
-                    time.sleep(2)
+                #try:
+                time.sleep(2)
                     #*se* time.sleep(2)
-                except (Exception) as ee:
-                    ee.printStackTrace()
+                #except (Exception) as ee:
+                #  sys.stdout.write("%s\n" %ee)
 
     def _start(self):
         """ generated source for method _start """
@@ -159,8 +165,10 @@ class OfficeDrive_SE6():
         browserjson = self.getParam("browserjson")
         if browserjson != None and not browserjson == "":
             self.browser = Browser(json.loads(browserjson))
-        cb = self.getCodeBase()
-        self.rootUrl = cb.getProtocol() + "://" + cb.getHost() + (":" + cb.getPort() if cb.getPort() > -1 else "") + self.getParam("rootFolder")
+       
+        self.rootUrl = "https://test.officedrive.net"
+        
+        #self.rootUrl = cb.getProtocol() + "://" + cb.getHost() + (":" + cb.getPort() if cb.getPort() > -1 else "") + self.getParam("rootFolder")
         self.transponderUrl = self.rootUrl + "/transponder.php"
         print self.rootUrl
         #  test permission
@@ -174,7 +182,7 @@ class OfficeDrive_SE6():
                 FileActions.setContents(self.testFile, "permission test")
                 os.remove(self.testFile)
             except (Exception) as ee:
-                ee.printStackTrace()
+                sys.stdout.write("%s\n" %ee)
                 print "Security level to low. Java is stopped"
                 self.evalJs("window['" + self.jsObj + "'].permissionFailure()")
                 return
@@ -243,7 +251,7 @@ class OfficeDrive_SE6():
         try:
             self.createLocalFolders()
         except (IOError) as e:
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             print "error: " + e.getMessage()
             return
         self.settings = json.load(os.path.join(self.appFolder, "settings.json"))
@@ -313,13 +321,13 @@ class OfficeDrive_SE6():
             self.fileChecker.setDaemon(True)
             self.fileChecker.start()
         except (IOError) as e:
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             print "error: " + e.getMessage()
         try:
-            self.commandChecker = self.CommandChecker(self)
+            self.commandChecker = CommandChecker(self)
             self.commandChecker.start()
         except (IOError) as e:
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             sys.stdout.write("error: %s\n" + e)
         self.alive = True
         self.started = True
@@ -531,7 +539,8 @@ class OfficeDrive_SE6():
 
     def getParam(self, name):
         """ generated source for method getParam """
-        val = self.getParameter(name)
+        cmd = self.commandTransporter("getParam")
+        val =  cmd.getParameter(name)
         if val == None:
             return ""
         else:
@@ -670,7 +679,7 @@ class OfficeDrive_SE6():
             try:
                 self.evalJs("window['" + self.jsObj + "'].connectionTimeout()")
             except (Exception) as ee:
-                ee.printStackTrace()
+                esys.stdout.write("%s\n" %e)
                 pass
             finally:
                 return False
@@ -784,7 +793,7 @@ class OfficeDrive_SE6():
                 print "file is locked with lock file"
                 if lockFile != None:
                     if openByForce:
-                        print "trying to delete lock file " + lockFile.getName()
+                        print "trying to delete lock file " + lockFile.name
                         if lockFile.delete():
                             print " - succeded"
                         else:
@@ -844,10 +853,10 @@ class OfficeDrive_SE6():
                 FileActions.saveHashMap(None, self.tempFolder, self.dmsId, "open_" + self.userId, itemId + ".json")
                 return "failed"
         except Exception as e:
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             return "error"
 
-    @openItemOnDesktop.register(object, str)
+#    @openItemOnDesktop.register(object, str)
     def openItemOnDesktop_0(self, itemId):
         """ generated source for method openItemOnDesktop_0 """
         return self.openItemOnDesktop(itemId, "")
@@ -885,7 +894,7 @@ class OfficeDrive_SE6():
         except (Exception):
             return False
 
-    @deleteOpenItem.register(object, str)
+#    @deleteOpenItem.register(object, str)
     def deleteOpenItem_0(self, itemId):
         """ generated source for method deleteOpenItem_0 """
         return self.deleteOpenItem(itemId, False)
@@ -907,7 +916,7 @@ class OfficeDrive_SE6():
                 sys.stdout.write(e + "\n")
         return True
 
-    @deleteOpenItems.register(object)
+#    @deleteOpenItems.register(object)
     def deleteOpenItems_0(self):
         """ generated source for method deleteOpenItems_0 """
         return self.deleteOpenItems(False)
@@ -1136,7 +1145,7 @@ class OfficeDrive_SE6():
             ret.put("exception", e.getMessage())
             self.error = str(e.getMessage())
             print "timeout while uploading:"
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             return False
         except Exception as e:
             self.progressDone -= float(bytesWritten) / 1024
@@ -1144,7 +1153,7 @@ class OfficeDrive_SE6():
             ret.put("exception", e.getMessage())
             self.error = str(e.getMessage())
             print "error while uploading:"
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             return False
         if status == 304:
             self.progressDone -= float(bytesWritten) / 1024
@@ -1435,7 +1444,7 @@ class OfficeDrive_SE6():
                         try:
                             time.sleep(1)
                         except (Exception) as e:
-                            e.printStackTrace()
+                            sys.stdout.write("%s\n" %e)
                 status = str(uploadReturn.get("status"))
                 upload.put("status", status)
                 print "       > " + status
@@ -1459,18 +1468,18 @@ class OfficeDrive_SE6():
             if "timeout in e":
                 print "connection timeout error..."
                 self.error = "error: connection timed out"
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
            
             return False
         # except OutOfMemoryError as e:
         #     print "out of memory error..."
-        #     e.printStackTrace()
+        #     sys.stdout.write("%s\n" %e)
         #     self.error = "error: memory overload (to many files)"
         #     return False
         # except Exception as e:
         #    print "Exception in uplaodSelectedFiles: " + e.getMessage()
         #   self.error = e.getMessage()
-        #  e.printStackTrace()
+        #  sys.stdout.write("%s\n" %e)
         # return False
         return True
 
@@ -1614,7 +1623,7 @@ class OfficeDrive_SE6():
                         sys.stdout.write(line)
                 return False
         except (Exception) as e:
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             self.execContent = e
             return False
 
@@ -1999,7 +2008,7 @@ class OfficeDrive_SE6():
                 self.currentMountNode = ""
             return success
         except Exception as e:
-            e.printStackTrace()
+            sys.stdout.write("%s\n" %e)
             self.error = e.getMessage()
             return False
 
@@ -2088,7 +2097,7 @@ class OfficeDrive_SE6():
         return cls.parseLongFromString(a) > b
 
     @classmethod
-    @isMore.register(object, str, long)
+#    @isMore.register(object, str, long)
     def isMore_0(cls, a, b):
         """ generated source for method isMore_0 """
         return cls.parseLongFromString(a) > b
@@ -2100,7 +2109,7 @@ class OfficeDrive_SE6():
         return cls.parseLongFromString(a) != b
 
     @classmethod
-    @doesNotEqual.register(object, str, long)
+#    @doesNotEqual.register(object, str, long)
     def doesNotEqual_0(cls, a, b):
         """ generated source for method doesNotEqual_0 """
         return cls.parseLongFromString(a) != b
@@ -2138,7 +2147,7 @@ class OfficeDrive_SE6():
             return bites + ""
 
     @classmethod
-    @bitesToStr.register(object, float)
+#    @bitesToStr.register(object, float)
     def bitesToStr_0(cls, bitesFloat):
         """ generated source for method bitesToStr_0 """
         return long(round(bitesFloat) + "")
@@ -2217,7 +2226,7 @@ class OfficeDrive_SE6():
         tr = self.tr(phrases, replaces)
         return tr.get(phrase).__str__()
 
-    @tr.register(object, str, str, str)
+#    @tr.register(object, str, str, str)
     def tr_2(self, phrase, search, replace):
         """ generated source for method tr_2 """
         phrases = []
@@ -2229,7 +2238,7 @@ class OfficeDrive_SE6():
         tr = self.tr(phrases, replaces)
         return tr.get(phrase).__str__()
 
-    @tr.register(object, str)
+    #@tr.register(object, str)
     def tr_3(self, phrase):
         """ generated source for method tr_3 """
         phrases = []
@@ -2283,7 +2292,7 @@ class OfficeDrive_SE6():
     class commandTransporter(object):
         """ generated source for class commandTransporter """
         name = ""
-        parameters = []
+        parameters = {}
 
         def __init__(self, name):
             """ generated source for method __init__ """
@@ -2347,7 +2356,7 @@ class OfficeDrive_SE6():
         self.busy = True
         return True
 
-    @openDmsItem.register(object, str, str)
+    #@openDmsItem.register(object, str, str)
     def openDmsItem_0(self, itemId, mode):
         """ generated source for method openDmsItem_0 """
         cmd = self.commandTransporter("openItem")
@@ -2424,7 +2433,7 @@ class OfficeDrive_SE6():
         self.addCommandTransporter(cmd)
         return True
 
-    @createNetUse.register(object, str)
+    #@createNetUse.register(object, str)
     def createNetUse_0(self, letter):
         """ generated source for method createNetUse_0 """
         return self.createNetUse(letter, "no")
@@ -2527,9 +2536,9 @@ class OfficeDrive_SE6():
         """ generated source for class CommandChecker """
         #app = OfficeDrive_SE6()
 
-        def __init__(self, app):
+        def __init__(self, app=None):
             """ generated source for method __init__ """
-            super(__class__.__class___, self).__init__()
+            #super(__class__.__class___, self).__init__()
             self.app = app
 
         def run(self):
@@ -2538,7 +2547,7 @@ class OfficeDrive_SE6():
                 time.sleep(0.1)
             except Exception as e:
                 Thread.__stop(self)
-                e.printStackTrace()
+                sys.stdout.write("%s\n" %e)
             cmd = None
             while True:
                 cmd = None
@@ -2708,3 +2717,5 @@ class OfficeDrive_SE6():
         """ generated source for method stop """
         self._kill()
 
+if __name__ == "__main__":
+    app = OfficeDrive_SE6()

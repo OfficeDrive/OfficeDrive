@@ -5,7 +5,7 @@ class Browser(object):
     """ generated source for class Browser """
     browser = {}
 
-    def __init__(self, info):
+    def __init__(self, info=None):
         """ generated source for method __init__ """
         self.browser = info
 

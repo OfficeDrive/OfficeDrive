@@ -6,7 +6,7 @@ from threading import  Thread
 
 class FileChangeChecker(Thread):
     """ generated source for class FileChangeChecker """
-    app = OfficeDrive_SE6()
+    #app = OfficeDrive_SE6()
 
     def __init__(self, officeDriveSE5):
         """ generated source for method __init__ """
