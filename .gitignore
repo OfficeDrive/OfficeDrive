@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 *.class
 *.pyc
 *.pyo
-=======
 *.py[cod]
 
 # C extensions
@@ -38,4 +36,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
->>>>>>> 3e98b10200e990084a25511bac0c529be0a1c2b2
