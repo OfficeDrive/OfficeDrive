@@ -138,7 +138,7 @@ class ConsoleWindow(wx.Frame):
         menu.Append(self.TBMENU_CLOSE,   "&Exit Program")
         
         return menu    
-
+gi
     def OnStatusIconRightClick(self, evt):
         """
         Create the right-click menu
