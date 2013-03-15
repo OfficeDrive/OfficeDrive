@@ -163,11 +163,11 @@ class OfficeDrive_SE6():
         
         #  parameters
         self.jsObj = self.getParam("jsObj")
-        browserjson = self.getParam("browserjson")
-        if browserjson != None and not browserjson == "":
-            self.browser = Browser.Browser(json.loads(browserjson))
+        # browserjson = self.getParam("browserjson")
+        # if browserjson != None and not browserjson == "":
+        #    self.browser = Browser.Browser(json.loads(browserjson))
        
-        self.rootUrl = "https://test.officedrive.net"
+        self.rootUrl = self.getParam("pluginLocation") + self.getParam("rootFolder")
         
         #self.rootUrl = cb.getProtocol() + "://" + cb.getHost() + (":" + cb.getPort() if cb.getPort() > -1 else "") + self.getParam("rootFolder")
         self.transponderUrl = self.rootUrl + "/transponder.php"
@@ -175,7 +175,7 @@ class OfficeDrive_SE6():
         #  test permission
         try:
             FileActions.setContents(self.testFile, "permission test")
-            self.testFile.delete()
+            os.remove(self.testFile)
         except Exception as e:
             print e
             try:
@@ -2295,10 +2295,15 @@ class OfficeDrive_SE6():
     class commandTransporter(object):
         """ generated source for class commandTransporter """
         name = ""
-        parameters = {"browserjson" :"{}", 
-                      "jsObj" : "foobar"}
-                      
-                    
+        parameters = {"browserjson" : "{}",
+                      "userId" : "officedrive.net-141-2",
+                      "sid" : "ATM6NfSi7fJHFYa99D5isd4b2vi3k8",
+                      "jsObj" : "jsOfficeDrivePlugin",
+                      "rootFolder" : "/plugin",
+                      "language" : "nl",
+                      "pluginLocation" : "https://officedrive.net",
+                      "cookie" : "ATM6NfSi7fJHFYa99D5isd4b2vi3k8=8MaiUvcl6Agusk6gnjAwgEeBAqBZX58Oov1nPJBw6BH7Zus0a9cAoPWdx2KexeTm1Ei8O6-PKYuhDCtE1YR3n-j64Pf-Hu_Ie9di0hhhvLr-cgcyzOd7xLP37Sddc02n4UA5FVVb_5VGljeKXb1v8kHTNcS1FUVHxfKlrRZ-hQjuma4rX8ubbTvAgYKu8ZtKL-5uCz-K&amp;lang=en"}
+          
 
         def __init__(self, name):
             """ generated source for method __init__ """
