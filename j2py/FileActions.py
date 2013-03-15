@@ -9,6 +9,8 @@ import gzip
 import json
 import urllib2
 import urllib
+import re
+import md5
 
 from shutil import copyfile
 from shutil import move
@@ -127,14 +129,15 @@ class FileActions(object):
         # 		return execOpenOnDesktop(file);
         #  }
         #  SE 1.6{
+        Desktop = None
         try:
             if Desktop.isDesktopSupported():
                 desktop = Desktop.getDesktop()
             desktop.open(file_.getCanonicalFile())
             return file_
         except Exception as e:
-            #  could not open file
-            return execOpenOnDesktop(file_)
+            sys.stdout.write("%s\n" %e)
+            return cls.execOpenOnDesktop(file_)
         #  }
 
    # @classmethod
@@ -146,14 +149,15 @@ class FileActions(object):
     @classmethod
     def execOpenOnDesktop(cls, file_):
         """ generated source for method execOpenOnDesktop """
-        pattern = Pattern.compile("[^a-zA-Z0-9_().-~]")
+        pattern = re.compile("[^a-zA-Z0-9_().-~]")
         matcher = pattern.matcher(file_.__name__)
         fileName = matcher.replaceAll("_")
+        newFile = os.path.join(file_.getParent(), fileName)
         if not file_.__name__ == fileName:
             os.rename(file_, newFile)
             file_ = newFile
         f = os.path.abspath(file_)
-        r = Runtime.getRuntime()
+        #r = Runtime.getRuntime()
         p = None
         if OS.isLinux():
             try:
@@ -195,13 +199,13 @@ class FileActions(object):
             return None
         s = os.path.sep
         lockFile = None
-        lockFile = File(file_.getParent() + s + "~$" + file_.__name__.substring(2))
+        lockFile = os.path.join(file_.getParent(), "~$" + file_.__name__.substring(2))
         if lockFile.exists():
             return lockFile
-        lockFile = File(file_.getParent() + s + "~$" + file_.__name__)
+        lockFile = os.path.join(file_.getParent(), "~$" + file_.__name__)
         if lockFile.exists():
             return lockFile
-        lockFile = File(file_.getParent() + s + ".~lock." + file_.__name__ + "#")
+        lockFile = os.path.join(file_.getParent(), ".~lock." + file_.__name__ + "#")
         if lockFile.exists():
             return lockFile
         else:
@@ -222,6 +226,7 @@ class FileActions(object):
         if not file_.exists():
             return False
         locked = False
+        fos = open(file_)
         try:
             fos.close()
         except Exception as e:
@@ -309,42 +314,42 @@ class FileActions(object):
 #   @overloaded
     def saveHashMap(cls, map, file_):
         """ generated source for method saveHashMap """
-        return cls.saveHashMap(map, File(file_))
+        return cls.saveHashMap(map, file_)
 
     @classmethod
 #    @saveHashMap.register(object, HashMap, File)
-    def saveHashMap_0(cls, map, file_):
+    def saveHashMap_0(cls, map_, file_):
         """ generated source for method saveHashMap_0 """
-        if map == None or map.isEmpty():
+        if map_ == None:
             file_.delete()
             return True
-        return cls.setContents(file_, JSONValue.toJSONString(map))
+        return cls.setContents(file_, json.dumps(map_))
 
     @classmethod
 #   @overloaded
     def loadHashMap(cls, file_):
         """ generated source for method loadHashMap """
-        json = cls.getContents(file_)
-        if json == None or not json.startsWith("{"):
-            return HashMap()
-        map = JSONValue.parse(json)
-        return map
+        jsonString = cls.getContents(file_)
+        if jsonString == None or not jsonString.startswith("{"):
+            return dict()
+        map_ = json.loads(json)
+        return map_
 
     @classmethod
 #    @loadHashMap.register(object, str)
     def loadHashMap_0(cls, file_):
         """ generated source for method loadHashMap_0 """
-        return cls.loadHashMap(File(file_))
+        return cls.loadHashMap(file_)
 
  #   complete = MessageDigest()
 
     @classmethod
     def createChecksum(cls, filename):
         """ generated source for method createChecksum """
-        fis = FileInputStream(filename)
-        buffer_ = [None]*1024
+        fis = io.open(filename)
+        buffer_ = buffer()
         if cls.complete == None:
-            cls.complete = MessageDigest.getInstance("MD5")
+            cls.complete = md5.md5()
         else:
             cls.complete.reset()
         len = int()
@@ -361,19 +366,21 @@ class FileActions(object):
 #   @overloaded
     def MD5(cls, file_):
         """ generated source for method MD5 """
-        return cls.MD5(file_.getAbsolutePath())
+        return cls.MD5(os.path.abspath(file_))
 
     @classmethod
 #    @MD5.register(object, str)
     def MD5_0(cls, fileName):
         """ generated source for method MD5_0 """
-        file_ = File(fileName)
-        if not file_.exists():
+        file_ = fileName
+        if not os.path.exists(file_):
             return ""
         md5 = ""
+        b = cls.createChecksum(fileName)
         try:
+            i = 0
             while len(b):
-                md5 += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1)
+                md5 += str((b[i] & 0xff) + 0x100, 16).substring(1)
                 i += 1
         except Exception as e:
             print e.getMessage()
