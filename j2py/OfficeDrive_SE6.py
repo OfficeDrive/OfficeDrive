@@ -106,6 +106,7 @@ class OfficeDrive_SE6():
     currentNetUseIsPersistent = False
     currentMountNode = ""
     currentMountIsPersistent = False
+    testFile = "cmd.txt"
     
     def __init__(self):
         commandChecker = self.CommandChecker()
@@ -164,7 +165,7 @@ class OfficeDrive_SE6():
         self.jsObj = self.getParam("jsObj")
         browserjson = self.getParam("browserjson")
         if browserjson != None and not browserjson == "":
-            self.browser = Browser(json.loads(browserjson))
+            self.browser = Browser.Browser(json.loads(browserjson))
        
         self.rootUrl = "https://test.officedrive.net"
         
@@ -176,11 +177,12 @@ class OfficeDrive_SE6():
             FileActions.setContents(self.testFile, "permission test")
             self.testFile.delete()
         except Exception as e:
+            print e
             try:
-                print "... waining 2 seconds to retry permission test"
+                print "... waintng 2 seconds to retry permission test"
                 time.sleep(2)
                 FileActions.setContents(self.testFile, "permission test")
-                os.remove(self.testFile)
+                #os.remove(self.testFile)
             except (Exception) as ee:
                 sys.stdout.write("%s\n" %ee)
                 print "Security level to low. Java is stopped"
@@ -442,8 +444,9 @@ class OfficeDrive_SE6():
     def evalJs(self, code_):
         """ generated source for method evalJs """
         try:
-            window = JSObject.getWindow(self);
-            window.eval(code_)
+            jso = JSObject()
+            window = jso.getWindow();
+            #window.eval(code_)
         except (Exception) as e:
             sys.stdout.write("Exception: %s\nCould not use window.eval(%s)\n" %(e, code_))
             if not self.browser.isIE():
@@ -679,7 +682,7 @@ class OfficeDrive_SE6():
             try:
                 self.evalJs("window['" + self.jsObj + "'].connectionTimeout()")
             except (Exception) as ee:
-                esys.stdout.write("%s\n" %e)
+                sys.stdout.write("%s\n" %e)
                 pass
             finally:
                 return False
@@ -2292,7 +2295,10 @@ class OfficeDrive_SE6():
     class commandTransporter(object):
         """ generated source for class commandTransporter """
         name = ""
-        parameters = {}
+        parameters = {"browserjson" :"{}", 
+                      "jsObj" : "foobar"}
+                      
+                    
 
         def __init__(self, name):
             """ generated source for method __init__ """

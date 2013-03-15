@@ -11,7 +11,7 @@ class Browser(object):
 
     def getBrowserType(self):
         """ generated source for method getBrowserType """
-        if self.browser != None and self.browser.containsKey("type"):
+        if self.browser != None and self.browser.has_key("type"):
             return str(self.browser.get("type"))
         else:
             return "unknown"

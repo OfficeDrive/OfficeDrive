@@ -284,7 +284,7 @@ class FileActions(object):
 ##   @overloaded
     def setContents(cls, file_, contents):
         """ generated source for method setContents """
-        cls.setContents(file_, contents)
+        cls.setContents_0(file_, contents)
 
     @classmethod
 #   @setContents.register(object, File, str)
@@ -437,12 +437,12 @@ class FileActions(object):
         i = 0
         while len(files):
             file_ = files[i]
-            if dirInfo.containsKey(file_.__name__):
+            if dirInfo.has_key(file_.__name__):
                 fileInfo = dirInfo.get(file_.__name__)
             else:
                 fileInfo = HashMap()
             LM = long(file_.lastModified())
-            if not fileInfo.containsKey("LM") or long(fileInfo.get("LM")) != LM or not fileInfo.containsKey("MD5") or fileInfo.get("MD5") == "":
+            if not fileInfo.has_key("LM") or long(fileInfo.get("LM")) != LM or not fileInfo.has_key("MD5") or fileInfo.get("MD5") == "":
                 fileInfo.put("LM", LM)
                 fileInfo.put("MD5", cls.MD5(file_))
                 updated = True
@@ -472,9 +472,9 @@ class FileActions(object):
         fileInfo = None
         infoFile = open(dir.getAbsolutePath() + s + ".OfficeDrive.syncinfo.json#1.0", "w")
         dirInfo = cls.loadHashMap(infoFile)
-        if dirInfo.containsKey(file_.__name__):
+        if dirInfo.has_key(file_.__name__):
             fileInfo = dirInfo.get(file_.__name__)
-        if fileInfo == None or not fileInfo.containsKey("LM") or long(fileInfo.get("LM")) != LM or not fileInfo.containsKey("MD5") or fileInfo.get("MD5") == "":
+        if fileInfo == None or not fileInfo.has_key("LM") or long(fileInfo.get("LM")) != LM or not fileInfo.has_key("MD5") or fileInfo.get("MD5") == "":
             fileInfo.put("LM", LM)
             fileInfo.put("MD5", cls.MD5(file_))
             if sys.platform == "win32":
