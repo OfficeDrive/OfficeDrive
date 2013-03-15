@@ -36,3 +36,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+simon/src/firebreath-dev/projects/officedrive/od_daemon.py
