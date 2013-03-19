@@ -37,6 +37,23 @@ class JSObject(object):
     def eval(self, code):
         pass
     pass
+
+class MyRequest(urllib2.Request):
+    GET =   'GET'
+    POST =  'POST'
+    PUT =   'PUT'
+    DELETE ='DELETE'
+
+    def __init__(self, url, data=None, headers={},
+        origin_req_host=None, unverifiable=False, method=None):
+        urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
+        self.method = method
+
+    def get_method(self):
+        if self.method:
+            return self.method
+
+        return urllib2.Request.get_method(self)
     
 class OfficeDrive_SE6():
     """ generated source for class OfficeDrive_SE6 """
@@ -139,8 +156,9 @@ class OfficeDrive_SE6():
         while not self.starting and tryCount < 3:
             print "start OfficeDrive.6 #" + str(tryCount)
             # print "start "+this.__class__.__name__+" #"+tryCount;
-            try:
-                self._start()
+            #try:
+            self._start()
+            """
             except Exception as e:
                 sys.stdout.write("%s\n" %e)
                 print "waiting 2 seconds to retry starting applet..."
@@ -149,7 +167,7 @@ class OfficeDrive_SE6():
                     #*se* time.sleep(2)
                 #except (Exception) as ee:
                 #  sys.stdout.write("%s\n" %ee)
-
+"""
     def _start(self):
         """ generated source for method _start """
         self.starting = True
@@ -171,7 +189,7 @@ class OfficeDrive_SE6():
         
         #self.rootUrl = cb.getProtocol() + "://" + cb.getHost() + (":" + cb.getPort() if cb.getPort() > -1 else "") + self.getParam("rootFolder")
         self.transponderUrl = self.rootUrl + "/transponder.php"
-        print self.rootUrl
+        print self.transponderUrl
         #  test permission
         try:
             FileActions.setContents(self.testFile, "permission test")
@@ -179,7 +197,7 @@ class OfficeDrive_SE6():
         except Exception as e:
             print e
             try:
-                print "... waintng 2 seconds to retry permission test"
+                print "... waiting 2 seconds to retry permission test"
                 time.sleep(2)
                 FileActions.setContents(self.testFile, "permission test")
                 #os.remove(self.testFile)
@@ -190,12 +208,15 @@ class OfficeDrive_SE6():
                 return
         #  check connection
         contact = False
-        if cb.getProtocol() == "https":
-            try:
-                contact = self.doFilePut("connection test", self.transponderUrl + "?action=test")
-                print "use verified SSL"
-            except Exception as e:
-                pass
+        request = urllib2.Request(self.transponderUrl + "?action=test")
+        
+        if request.get_type() == "https":
+            #try:
+            contact = self.doFilePut("c:\cmd.txt", request)
+            print "use verified SSL"
+            #except Exception as e:
+            #    sys.stdout.write('%s\n' %e)
+            #    pass
             if not contact:
                 # 				useNaiveSSL = true;
                 # 				try{
@@ -232,7 +253,7 @@ class OfficeDrive_SE6():
                 # 				}
         else:
             try:
-                contact = self.doFilePut("hello world!", self.transponderUrl + "?action=test")
+                contact = self.doFilePut("hello world!", self.request)
                 print "contact to server tested"
             except Exception as e:
                 pass
@@ -254,7 +275,7 @@ class OfficeDrive_SE6():
             self.createLocalFolders()
         except (IOError) as e:
             sys.stdout.write("%s\n" %e)
-            print "error: " + e.getMessage()
+            print "error: " + e
             return
         self.settings = json.load(os.path.join(self.appFolder, "settings.json"))
         if self.encryptorKey == None:
@@ -324,9 +345,9 @@ class OfficeDrive_SE6():
             self.fileChecker.start()
         except (IOError) as e:
             sys.stdout.write("%s\n" %e)
-            print "error: " + e.getMessage()
+            print "error: " + e
         try:
-            self.commandChecker = CommandChecker(self)
+#!consse!            self.commandChecker = CommandChecker(self)
             self.commandChecker.start()
         except (IOError) as e:
             sys.stdout.write("%s\n" %e)
@@ -468,55 +489,55 @@ class OfficeDrive_SE6():
 
     def getTransponderContent(self, urlAttributes):
         """ generated source for method getTransponderContent """
-        try:
-            url = self.transponderUrl+"?holder-type=java&sid=" + self.sid + "&dmsId=" + self.dmsId +"&" + self.urlAttributes
+        #try:
+        url = self.transponderUrl+"?holder-type=java&sid=" + self.getParam("sid") + "&dmsId=" + self.getParam("dmsId") +"&" + urlAttributes
 
-            req = urllib2.Request(url, "GET")
-            req.add_header("Cookie", self.cookie)
+        req = urllib2.Request(url, "GET")
+        req.add_header("Cookie", self.cookie)
+        conn = urllib2.urlopen(req)
+        
+        if conn.code < 0:
+            sys.stdout.write("... waining 2 seconds to retry: %s\n" %url)
+            conn.close()
+            time.sleep(2)
             conn = urllib2.urlopen(req)
-            
             if conn.code < 0:
-                sys.stdout.write("... waining 2 seconds to retry: %s\n" %url)
-                conn.close()
-                time.sleep(2)
-                conn = urllib2.urlopen(req)
-                if conn.code < 0:
-                    self.error = "connection failed"
-                    sys.stdout.write(conn.read())
-                    self.evalJs("window['" + self.jsObj + "'].connectionFailure()")
-                    return None
-            
-            if conn.code == 304:
-                self.error = "session failed"
-                sys.stdout(self.error)
-                self.evalJs("window['" + self.jsObj + "'].sessionFailure()")
-                return None
-            
-            if conn.code / 100 != 2:
-                self.error = conn.read()
-                sys.stdout.write(self.error)
+                self.error = "connection failed"
+                sys.stdout.write(conn.read())
                 self.evalJs("window['" + self.jsObj + "'].connectionFailure()")
                 return None
-            
-            lines = []
-            for line in conn.readlines():
-                lines.append(line)
-                
-            conn.close()
-            content = str()
-            for line in lines:
-                content += "%s\n" %line
-            return content
         
-        except (urllib2.HTTPError) as e:
-            try:
-                self.evalJs("window['" + self.jsObj + "'].connectionTimeout()")
-            except:
-                pass
-            finally: return ""
-        except (Exception) as e:
-            sys.stdout.write("getTransponderLines failed: %s\n" %e)
-            return ""
+        if conn.code == 304:
+            self.error = "session failed"
+            sys.stdout(self.error)
+            self.evalJs("window['" + self.jsObj + "'].sessionFailure()")
+            return None
+        
+        if conn.code / 100 != 2:
+            self.error = conn.read()
+            sys.stdout.write(self.error)
+            self.evalJs("window['" + self.jsObj + "'].connectionFailure()")
+            return None
+        
+        lines = []
+        for line in conn.readlines():
+            lines.append(line)
+            
+        conn.close()
+        content = str()
+        for line in lines:
+            content += "%s\n" %line
+        return content
+        
+#        except (urllib2.HTTPError) as e:
+#            try:
+ #               self.evalJs("window['" + self.jsObj + "'].connectionTimeout()")
+  #          except:
+   #             pass
+    #        finally: return ""
+     #   except (Exception) as e:
+      #      sys.stdout.write("getTransponderLines failed: %s\n" %e)
+       #     return ""
 
     def getTransponderLine(self, urlAttributes):
         """ generated source for method getTransponderLine """
@@ -1050,10 +1071,10 @@ class OfficeDrive_SE6():
             self.evalJs("window['" + self.jsObj + "'].notifieLockChange(" + itemId + ")")
 
 #    @overloaded
-    def doFilePut(self, file_, url, headers, ret):
+    def doFilePut(self, file_, url, headers=None, ret={}):
         """ generated source for method doFilePut """
         if 1024 / len(file_) / 1024 > self.maxUploadMb:
-            ret.put("status", "file to big")
+            ret["status"] = "file to big"
             return False
         bytesAvailable = int()
         bytesRead = int()
@@ -1069,107 +1090,116 @@ class OfficeDrive_SE6():
         ret.clear()
         phrases = []
         phrases.append("canceled")
-        tr(phrases)
-        try:
-            if url.getProtocol() == "https":
-                conn = url.openConnection()
-            else:
-                conn = url.openConnection()
-            conn.setUseCaches(False)
-            conn.setDoOutput(True)
-            conn.setDoInput(True)
-            ret.put("status", "unknown")
-            ret.put("host", url.getHost())
-            ret.put("port", url.getPort() + "")
-            ret.put("content-length", "" + len(file_))
-            conn.setRequestMethod("PUT")
-            headerKeys = conn.headers.keys()
-            if headers:
-                for key in headerKeys:
-                    conn.setRequestProperty(headers[key], headers.get(key))
-                                            
-                    
-            conn.setRequestProperty("Content-length", "" + len(file_))
-            conn.setRequestProperty("X-content-length", "" + len(file_))
-            conn.setRequestProperty("Cookie", self.cookie)
-            conn.setRequestProperty("Connection", "close")
-            conn.setChunkedStreamingMode(3 * 1024)
-            conn.connect()
-            # bytesAvailable = 
-            fileInputStream = io.open(file_)
-            out = io.BufferedWriter()
-            bufferSize = min(bytesAvailable, self.uploadBufferSize)
-            buffer_ = [None]*bufferSize
-            currSecond = float(time.time() / 2000)
-            bytesRead = fileInputStream.read(buffer_, 0, bufferSize)
-            while bytesRead >= 0:
-                if self.cancel:
-                    break
-                out.write(buffer_, 0, bufferSize)
-                out.flush()
-                bytesWritten += bufferSize
-                self.progressDone += float(bufferSize) / 1024
-                bytesAvailable = fileInputStream.available()
-                bufferSize = min(bytesAvailable, self.uploadBufferSize)
-                if currSecond != float(time.time() / 2):
-                    try:
-                        time.sleep(0.1)
-                    except (Exception) as e:
-                        pass
-                    currSecond = float(time.time() / 2000)
-            out.close()
-            if self.cancel:
-                conn.disconnect()
-                self.progressDescription = tr("canceled")
-                self.cancel = False
-                ret.put("status", "canceled")
-                return False
-            in_ = io.BufferedReader(conn.fp)
-            try:
-                status = conn.getResponseCode()
-                statusLine = conn.getResponseMessage()
-                for line in in_.readlines():
-                    bodyLines.add(line)
-                in_.close()
-            except (IOError) as e:
-                status = conn.getResponseCode()
-                statusLine = conn.getResponseMessage()
-                if status == 409:
-                    ret.put("status", "full")
-                    self.error = statusLine
-                    print "insufficiant disk space"
-                    return False
-            ret.put("headers", headerLines)
-            ret.put("body", bodyLines)
-            ret.put("status", bodyLines.get(0))
-        except (Exception) as e:
-            self.progressDone -= float(bytesWritten) / 1024
-            ret.put("status", "exception")
-            ret.put("exception", e.getMessage())
-            self.error = str(e.getMessage())
-            print "timeout while uploading:"
-            sys.stdout.write("%s\n" %e)
-            return False
-        except Exception as e:
-            self.progressDone -= float(bytesWritten) / 1024
-            ret.put("status", "exception")
-            ret.put("exception", e.getMessage())
-            self.error = str(e.getMessage())
-            print "error while uploading:"
-            sys.stdout.write("%s\n" %e)
-            return False
-        if status == 304:
-            self.progressDone -= float(bytesWritten) / 1024
-            self.evalJs("window['" + self.jsObj + "'].sessionFailure()")
-            return False
-        elif status == 200:
-            return True
+        #self.tr(phrases)
+        
+        putrequest = MyRequest(url.get_full_url(), "PUT")
+        putrequest.add_header("Content-length",  str(len(file_)))
+        putrequest.add_header("X-content-length", str(len(file_)))
+        putrequest.add_header("Cookie", self.cookie)
+        putrequest.add_header("Connection", "close")
+        #try:
+        if putrequest.get_type() == "https":
+            print putrequest.get_full_url()
+            conn = urllib2.urlopen(putrequest)
+            
         else:
-            self.progressDone -= float(bytesWritten) / 1024
-            self.error = statusLine + " => " + bodyLines.get(0)
-            print "error while uploading: " + self.error
-            return False
+            print putrequest.get_full_url()
+            conn = urllib2.urlopen(putrequest)
+        #conn.setUseCaches(False)
+        #conn.setDoOutput(True)
+        #conn.setDoInput(True)
+        ret["status"] = "unknown"
+        ret["host"] = putrequest.host
+        ret["port"] = putrequest.port
+        ret["content-length"] = str(len(file_))
+        #conn.setRequestMethod("PUT")
+        #headerKeys = conn.headers.keys()
+        #if headerKeys:
+        #    for key in headerKeys:
+        #        conn.setRequestProperty(headers[key], headers.get(key))
+                                        
+                
 
+        #conn.setChunkedStreamingMode(3 * 1024)
+        #conn.connect()
+        # bytesAvailable = 
+        fileInputStream = io.open(file_, "r")
+        out = io.BufferedReader(fileInputStream)
+        bufferSize = min(bytesAvailable, self.uploadBufferSize)
+        buffer_ = [None]*bufferSize
+        currSecond = float(time.time() / 2000)
+        bytesRead = fileInputStream.read(bufferSize)
+        while bytesRead >= 0:
+            if self.cancel:
+                break
+            out.write(buffer_, 0, bufferSize)
+            out.flush()
+            bytesWritten += bufferSize
+            self.progressDone += float(bufferSize) / 1024
+            bytesAvailable = fileInputStream.available()
+            bufferSize = min(bytesAvailable, self.uploadBufferSize)
+            if currSecond != float(time.time() / 2):
+                try:
+                    time.sleep(0.1)
+                except (Exception) as e:
+                    pass
+                currSecond = float(time.time() / 2000)
+        out.close()
+        if self.cancel:
+            conn.close()
+            self.progressDescription = self.tr("canceled")
+            self.cancel = False
+            ret["status"] = "canceled"
+            return False
+        in_ = io.BufferedReader(conn.fp)
+        try:
+            status = conn.code
+            statusLine = conn.msg
+            for line in in_.readlines():
+                bodyLines.append(line)
+            in_.close()
+        except (IOError) as e:
+            status = conn.code
+            statusLine = conn.msg
+            if status == 409:
+                ret["status"] = "full"
+                self.error = statusLine
+                print "insufficiant disk space"
+                return False
+        ret["headers"] = headerLines
+        ret["body"] = bodyLines
+        ret["status"] = bodyLines[0]
+    """except (Exception) as e:
+        self.progressDone -= float(bytesWritten) / 1024
+        ret["status"] = "exception"
+        ret["exception"] = e
+        self.error = str(e)
+        for k,v in ret:
+            print "%s : %s" %(k,v)
+        print "timeout while uploading:"
+        print e
+        return False
+    except Exception as e:
+        self.progressDone -= float(bytesWritten) / 1024
+        ret["status"] = "exception"
+        ret["exception"] = e
+        self.error = str(e)
+        print "error while uploading:"
+        print e
+        return False
+    
+    if status == 304:
+        self.progressDone -= float(bytesWritten) / 1024
+        self.evalJs("window['" + self.jsObj + "'].sessionFailure()")
+        return False
+    elif status == 200:
+        return True
+    else:
+        self.progressDone -= float(bytesWritten) / 1024
+        self.error = statusLine + " => " + bodyLines[0]
+        print "error while uploading: " + self.error
+        return False
+"""
     #@doFilePut.register(object, File, URL)
     def doFilePut_0(self, file_, url):
         """ generated source for method doFilePut_0 """
@@ -1480,8 +1510,8 @@ class OfficeDrive_SE6():
         #     self.error = "error: memory overload (to many files)"
         #     return False
         # except Exception as e:
-        #    print "Exception in uplaodSelectedFiles: " + e.getMessage()
-        #   self.error = e.getMessage()
+        #    print "Exception in uplaodSelectedFiles: " + e
+        #   self.error = e
         #  sys.stdout.write("%s\n" %e)
         # return False
         return True
@@ -2012,7 +2042,7 @@ class OfficeDrive_SE6():
             return success
         except Exception as e:
             sys.stdout.write("%s\n" %e)
-            self.error = e.getMessage()
+            self.error = e
             return False
 
     def _removeMount(self):
@@ -2158,32 +2188,33 @@ class OfficeDrive_SE6():
     _tr = dict()
 
 #    @overloaded
-    def tr(self, phrases, replaces):
+    def tr(self, phrases, replaces=None):
         """ generated source for method tr """
         tr = dict()
+        get = []
         if self._tr == None:
             self._tr = dict()
-        get = []
-        i = 0
-        while i < len(phrases):
-            if self._tr.has_key(phrases.get(i)):
-                tr.put(phrases.get(i), self._tr.get(phrases.get(i)))
+        for p in phrases:
+            if self._tr.has_key(p):
+                tr[p] = self._tr.get(p, "")
             else:
-                get.add(phrases.get(i))
-            i += 1
-        q = str()
+                get.append(p)
+          
+        q = "action=translate&phrase=" + get.__str__();
         phrase = str()
         line = str()
-        jsonString = self.getTransponderContent("action=translate"+q)
+        jsonString = self.getTransponderContent(q)
+        print jsonString
         newTr = dict(json.loads(jsonString))
+        i = 0
         if len(get) > 0:
             while i < len(get):
                 pass
                 i += 1
             if newTr != None:
                 while i < len(get):
-                    phrase = get.get(i).__str__()
-                    if newTr.get(phrase) == None:
+                    phrase = get[i].__str__()
+                    if newTr.get(phrase, None) == None:
                         line = phrase
                     else:
                         newTr.get(phrase).__str__()
@@ -2192,25 +2223,27 @@ class OfficeDrive_SE6():
                     tr[phrase] = self._tr.get(phrase)
                     i += 1
             else:
+                i = 0
                 while i < len(get):
-                    phrase = get.get(i).__str__()
+                    phrase = get[i].__str__()
                     self._tr[phrase] = phrase
                     tr[phrase] = self._tr.get(phrase)
                     i += 1
         if replaces != None:
+            i = 0
             while i < len(phrases):
-                r = replaces.get(i)
-                if r != None and not r.isEmpty():
-                    phrase = phrases.get(i).__str__()
+                r = replaces[i]
+                if r:
+                    phrase = phrases[i].__str__()
                     line = tr.get(phrase).__str__()
                     ii = 0
                     while ii < len(r):
-                        search = r.keySet().toArray()[ii].__str__()
-                        replace = r.get(search).__str__()
+                        search = p[ii].__str__()
+                        replace = r[ii].__str__()
                         if search and replace:
-                            line = self.strReplace(search, replace, line)
+                            line = search.replace(search, replace)
                         ii += 1
-                    tr.put(phrase, line)
+                    tr[phrase] = line
                 i += 1
         return tr
 
@@ -2597,7 +2630,7 @@ class OfficeDrive_SE6():
                             success = self.app.uploadSelectedFiles(folderId)
                             self.app.busy = False
                         except Exception as e:
-                            print e.getMessage()
+                            print e
                         self.app.busy = False
                         self.app.evalJs("window['" + self.app.jsObj + "'].browseAndUploadInDmsFolder_onFinish(" + ("true" if success else "false") + ")")
                     else:
@@ -2622,7 +2655,7 @@ class OfficeDrive_SE6():
                             try:
                                 success = self.app.uploadItemVersion(itemId)
                             except Exception as e:
-                                print e.getMessage()
+                                print e
                             self.app.busy = False
                             self.app.evalJs("window['" + self.app.jsObj + "'].browseAndUploadItemVersion_onFinish(" + ("true" if success else "false") + ")")
                         else:
